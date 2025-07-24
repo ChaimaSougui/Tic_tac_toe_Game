@@ -1,33 +1,216 @@
-
 <!DOCTYPE html>
- <html lang="en">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tic Tac Toe</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #f0f2f5, #d9e4f5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    .game-container {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      margin: 20px auto;
+    }
+
+    .cell {
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      font-size: 2.5rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .cell:hover {
+      background-color: #e8f0fe;
+    }
+
+    .X {
+      color: #e74c3c;
+    }
+
+    .O {
+      color: #2980b9;
+    }
+
+    .status {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      color: #555;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      color: #fff;
+      background-color: #007bff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    .over .cell {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 500px) {
+      .board {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+      }
+
+      .cell {
+        font-size: 2rem;
+      }
+    }
+  </style>
 </head>
 <body>
 
-</head>
-<body>
-    <div><span class="playerTitle">tik tak toe Game</span></div>
-    <p>    </p>
-    <div class="box">
-      
-      <div class="inner "></div>
-      <div class="inner"></div>
-      <div class="inner "></div>  
-      <div class="inner "></div>
-      <div class="inner "></div>
-      <div class="inner "></div>  
-      <div class="inner "></div>
-      <div class="inner "></div>
-      <div class="inner "></div>  
+  <div class="game-container">
+    <h1>Tic Tac Toe</h1>
+    <div class="status">Your turn (X)</div>
+    <div class="board" id="board">
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
+      <div class="cell"></div>
     </div>
-    
-    <p style="color: rgb(250, 248, 248);" class="rematch">Rejouer</p>
-  <script src="index.js"></script>
+    <button class="btn" id="resetBtn">Restart</button>
+  </div>
+
+  <script>
+    const cells = document.querySelectorAll('.cell');
+    const statusText = document.querySelector('.status');
+    const resetBtn = document.getElementById('resetBtn');
+    let board = ['', '', '', '', '', '', '', '', ''];
+    let currentPlayer = 'X';
+    let isGameOver = false;
+
+    const winConditions = [
+      [0,1,2], [3,4,5], [6,7,8], // rows
+      [0,3,6], [1,4,7], [2,5,8], // columns
+      [0,4,8], [2,4,6]           // diagonals
+    ];
+
+    function handleCellClick(e) {
+      const index = [...cells].indexOf(e.target);
+
+      if (board[index] !== '' || isGameOver) return;
+
+      board[index] = currentPlayer;
+      e.target.textContent = currentPlayer;
+      e.target.classList.add(currentPlayer);
+
+      if (checkWinner()) {
+        statusText.textContent = `${currentPlayer} wins! 🎉`;
+        document.querySelector('.board').classList.add('over');
+        isGameOver = true;
+        return;
+      }
+
+      if (!board.includes('')) {
+        statusText.textContent = "It's a draw 🤝";
+        isGameOver = true;
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      statusText.textContent = `${currentPlayer === 'X' ? 'Your' : "Computer"} turn (${currentPlayer})`;
+
+      if (currentPlayer === 'O') {
+        setTimeout(computerMove, 500);
+      }
+    }
+
+    function checkWinner() {
+      return winConditions.some(combination => {
+        return combination.every(index => board[index] === currentPlayer);
+      });
+    }
+
+    function computerMove() {
+      let emptyCells = board.map((val, i) => val === '' ? i : null).filter(i => i !== null);
+      if (emptyCells.length === 0 || isGameOver) return;
+
+      let randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      board[randomIndex] = 'O';
+      cells[randomIndex].textContent = 'O';
+      cells[randomIndex].classList.add('O');
+
+      if (checkWinner()) {
+        statusText.textContent = `Computer wins! 🤖`;
+        document.querySelector('.board').classList.add('over');
+        isGameOver = true;
+        return;
+      }
+
+      if (!board.includes('')) {
+        statusText.textContent = "It's a draw 🤝";
+        isGameOver = true;
+        return;
+      }
+
+      currentPlayer = 'X';
+      statusText.textContent = "Your turn (X)";
+    }
+
+    function resetGame() {
+      board = ['', '', '', '', '', '', '', '', ''];
+      currentPlayer = 'X';
+      isGameOver = false;
+      statusText.textContent = "Your turn (X)";
+      cells.forEach(cell => {
+        cell.textContent = '';
+        cell.classList.remove('X', 'O');
+      });
+      document.querySelector('.board').classList.remove('over');
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+    resetBtn.addEventListener('click', resetGame);
+  </script>
+
 </body>
 </html>
